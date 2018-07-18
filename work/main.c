@@ -1,6 +1,8 @@
 /* Заголовочный файл для нашего семейства микроконтроллеров*/
 #include "stm32f3xx.h"
 
+const int LED[] = {0x200, 0x100, 0x400, 0x8000, 0x800, 0x4000, 0x1000, 0x2000};
+
 /* Тело основной программы */
 int main(void)
 {
@@ -8,23 +10,20 @@ int main(void)
 	RCC->AHBENR |= RCC_AHBENR_GPIOEEN;
 	
 	/* Настраиваем режим работы портов PC8 и PC9 в Output*/
-	GPIOE ->MODER = 0x50000;
+	GPIOE->MODER = 0x55550000;
 	/* Настраиваем Output type в режим Push-Pull */
 	GPIOE->OTYPER = 0;
 	
 	/* Настраиваем скорость работы порта в Low */
 	GPIOE->OSPEEDR = 0;
 	
-    
+    short LED_index = 0;
     
 	while(1)
 	{
-		/* Зажигаем светодиод PC8, гасим PC9 */
-		GPIOE->ODR = 0x100;
-		for (int i=0; i<500000; i++){}	// Искусственная задержка
-					
-		/* Зажигаем светодиод PC9, гасим PC8 */
-		GPIOE->ODR = 0x200;
-		for (int i=0; i<500000; i++){}	// Искусственная задержка
+		/* Поочередное зажигание диодов */
+		GPIOE->ODR = LED[LED_index];
+		for (int i = 0; i < 500000; ++i) {}	// Искусственная задержка
+        LED_index = LED_index == (sizeof(LED)/sizeof(int) - 1) ? 0 : LED_index + 1;
 	}		
 }
