@@ -2,7 +2,7 @@
 #include "stm32f3xx.h"
 
 const int LED[] = {0x200, 0x100, 0x400, 0x8000, 0x800, 0x4000, 0x1000, 0x2000};
-
+const int CircleLEDind[] = {0, 1, 3, 5, 7, 6, 4, 2};
 /* Тело основной программы */
 int main(void)
 {
@@ -16,14 +16,14 @@ int main(void)
 	
 	/* Настраиваем скорость работы порта в Low */
 	GPIOE->OSPEEDR = 0;
-	
-    short LED_index = 0;
+
+    short index = 0;
     
 	while(1)
 	{
 		/* Поочередное зажигание диодов */
-		GPIOE->ODR = LED[LED_index];
+		GPIOE->ODR = LED[CircleLEDind[index]];
 		for (int i = 0; i < 500000; ++i) {}	// Искусственная задержка
-        LED_index = LED_index == (sizeof(LED)/sizeof(int) - 1) ? 0 : LED_index + 1;
+        	index = index == (sizeof(LED)/sizeof(int) - 1) ? 0 : index + 1;
 	}		
 }
