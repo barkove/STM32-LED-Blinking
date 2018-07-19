@@ -1,10 +1,10 @@
 /* Заголовочный файл для нашего семейства микроконтроллеров*/
 #include "stm32f3xx.h"
 
-#define F_CPU 		    12000000UL
-#define BlinkFreq       10
-#define TimerTick  	    (F_CPU / (2 * BlinkFreq) - 1)    // N - requiers ticks (N <= 2^24)
-                                                        // N - 1 - should be written
+#define F_CPU 		    9000000UL 
+#define BlinkFreq       4
+#define TimerTick  	    (F_CPU / (2 * BlinkFreq) - 1)    // N is required ticks (N <= 2^24)
+                                                        // N - 1 should be written
 
 const int LED[] = {0x200, 0x100, 0x400, 0x8000, 0x800, 0x4000, 0x1000, 0x2000};
 int LEDs = 0;
@@ -22,17 +22,20 @@ int main(void)
 	GPIOE->OSPEEDR = 0;
  
     SysTick->LOAD = TimerTick;		    // Загрузка значения
-    SysTick->VAL = TimerTick;		    // Обнуляем таймеры и флаги
+    SysTick->VAL = TimerTick;		    // Обнуляем таймеры и флаги записью
  
-    SysTick->CTRL =	SysTick_CTRL_CLKSOURCE_Msk |
-                    SysTick_CTRL_TICKINT_Msk   |
-                    SysTick_CTRL_ENABLE_Msk;
+    SysTick->CTRL =	SysTick_CTRL_CLKSOURCE_Msk |    // Используем ТИ процессора
+                    SysTick_CTRL_TICKINT_Msk   |    // Бросать прерывание
+                    SysTick_CTRL_ENABLE_Msk;        // Запустить таймер
     
     for (int i = 0; i < sizeof(LED) / sizeof(int); ++i) {
         LEDs |= LED[i];
     }
-    
-    GPIOE->ODR = LEDs;
+ 
+    while(1)
+    {
+        GPIOE->ODR = GPIOE->ODR;
+    }
 }
 
 /* Попеременно зажигает светодиоды по прерыванию */
