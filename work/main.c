@@ -1,8 +1,8 @@
 /* Заголовочный файл для нашего семейства микроконтроллеров*/
 #include "stm32f3xx.h"
 
-#define F_CPU 		    9000000UL 
-#define BlinkFreq       4
+#define F_CPU 		    8000000UL 
+#define BlinkFreq       1
 #define TimerTick  	    (F_CPU / (2 * BlinkFreq) - 1)    // N is required ticks (N <= 2^24)
                                                         // N - 1 should be written
 
@@ -32,9 +32,11 @@ int main(void)
         LEDs |= LED[i];
     }
  
+    GPIOE->ODR = 0;
+    
     while(1)
     {
-        GPIOE->ODR = GPIOE->ODR;
+        //GPIOE->ODR = GPIOE->ODR;
     }
 }
 
