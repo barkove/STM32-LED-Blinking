@@ -9,6 +9,17 @@
 const int LED[] = {0x200, 0x100, 0x400, 0x8000, 0x800, 0x4000, 0x1000, 0x2000};
 int LEDs = 0;
 
+/* Инициализация и запуск таймера */
+void SysTick_init_run(uint32_t ticks) 
+{
+    SysTick->LOAD = ticks;		    // Загрузка значения
+    SysTick->VAL = ticks;		    // Обнуляем таймеры и флаги записью
+ 
+    SysTick->CTRL =	SysTick_CTRL_CLKSOURCE_Msk |    // Используем ТИ процессора
+                    SysTick_CTRL_TICKINT_Msk   |    // Бросать прерывание
+                    SysTick_CTRL_ENABLE_Msk;        // Запустить таймер
+}
+
 /* Тело основной программы */
 int main(void)
 {
@@ -21,12 +32,7 @@ int main(void)
 	/* Настраиваем скорость работы порта в Low */
 	GPIOE->OSPEEDR = 0;
  
-    SysTick->LOAD = TimerTick;		    // Загрузка значения
-    SysTick->VAL = TimerTick;		    // Обнуляем таймеры и флаги записью
- 
-    SysTick->CTRL =	SysTick_CTRL_CLKSOURCE_Msk |    // Используем ТИ процессора
-                    SysTick_CTRL_TICKINT_Msk   |    // Бросать прерывание
-                    SysTick_CTRL_ENABLE_Msk;        // Запустить таймер
+    SysTick_init_run(TimerTick);
     
     for (int i = 0; i < sizeof(LED) / sizeof(int); ++i) {
         LEDs |= LED[i];
@@ -34,10 +40,7 @@ int main(void)
  
     GPIOE->ODR = 0;
     
-    while(1)
-    {
-        //GPIOE->ODR = GPIOE->ODR;
-    }
+    while(1) {}
 }
 
 /* Попеременно зажигает светодиоды по прерыванию */
