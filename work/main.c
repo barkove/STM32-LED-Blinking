@@ -2,11 +2,12 @@
 #include "stm32f3xx.h"
 
 #define F_CPU 	        8000000UL 
-#define BlinkFreq       1                               // must be greater than 0
-#define SysTicks      	(F_CPU / (2 * BlinkFreq) - 1)   // N is required ticks (N <= 2^24)
-                                                        // N - 1 should be written
+#define SysTickFreq     50                                   // must be greater than 0
+#define SysTicks      	(F_CPU / (2 * SysTickFreq) - 1)   // N is required ticks (N <= 2^24)
+                                                            // N - 1 should be written
+#define TIM7_Freq       1                                                        
 #define TIM7_Prescaler  (1 << 7)
-#define TIM7_Ticks      (F_CPU / TIM7_Prescaler / (2 * BlinkFreq) - 1)
+#define TIM7_Ticks      (F_CPU / TIM7_Prescaler / (2 * TIM7_Freq) - 1)
 
 const int LED[] = {0x200, 0x100, 0x400, 0x8000, 0x800, 0x4000, 0x1000, 0x2000};
 const int CircleLEDind[] = {0, 1, 3, 5, 7, 6, 4, 2};
@@ -46,6 +47,19 @@ void LED_init()
 	GPIOE->OSPEEDR = 0;
 }
 
+/* Инициализация порта для пользовательской кнопки */
+void B1_USER_init()
+{
+    RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
+    GPIOA->MODER &= ~GPIO_MODER_MODER0;                         // Установка в input
+}
+
+/* Получение состояния кнопки */
+short B1_USER_read()
+{
+    return (GPIOA->IDR & GPIO_IDR_0);
+}
+
 /* Зажечь диод LED[index] */
 void LED_on(short index)
 {
@@ -68,7 +82,11 @@ void LED_invert(short index)
 int main(void)
 {   
     LED_init();
+    
+    B1_USER_init();
 
+    SysTick_init_run(SysTicks);
+    
     __enable_irq ();
     NVIC_EnableIRQ(TIM7_IRQn);    
     TIM7_init_run(TIM7_Ticks);
@@ -79,13 +97,13 @@ int main(void)
     
     while(1) {}
 }
-
-/* Попеременно зажигает светодиоды по прерыванию системного таймера */
+/* Управляет работой TIM7 по кнопке */
 void SysTick_Handler(void)
 {  
-    for (int i = 0; i < sizeof(LED) / sizeof(int); ++i) {
-        LED_invert(i);
-    }
+    static short bef_st = 0;
+    if (bef_st == 1 && B1_USER_read() == 0)
+        TIM7->DIER ^= TIM_DIER_UIE;             // Отключить прерывание TIM7
+    bef_st = B1_USER_read();
 }
 
 /* Попеременно зажигает светодиоды по прерыванию TIM7 */
